@@ -1,4 +1,4 @@
-name: Terraform Init
+name: Terraform
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
         type: boolean
 
 jobs:
-  terraform-init:
+  terraform:
     runs-on: ubuntu-latest
     
     steps:
