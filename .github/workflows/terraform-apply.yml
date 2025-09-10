@@ -7,6 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   # Job 1: Plan and Apply in desarrollo environment
   terraform-desarrollo:
