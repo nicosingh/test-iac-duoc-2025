@@ -1,0 +1,27 @@
+name: Terraform Init
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  terraform-init:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: latest
+        
+    - name: Create backend config file
+      run: echo "${{ vars.BACKEND_TFVARS }}" > backend.tfvars
+      
+    - name: Terraform Init
+      run: terraform init -backend-config=backend.tfvars
