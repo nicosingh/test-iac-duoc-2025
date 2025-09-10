@@ -14,11 +14,26 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Install Azure CLI
+      shell: bash
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
       
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: latest
+
+    - name: Azure Login with Device Code
+      shell: bash
+      run: |
+        echo "Starting Azure login with device code..."
+        echo "You will see a code and URL below. Open the URL in your browser and enter the code to authenticate."
+        echo ""
+        az login --use-device-code
+        echo ""
+        echo "Azure login successful!"
         
     - name: Create backend config file
       run: |
