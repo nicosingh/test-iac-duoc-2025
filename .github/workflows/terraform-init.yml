@@ -19,7 +19,7 @@ jobs:
       shell: bash
       run: |
         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-      
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
@@ -43,3 +43,6 @@ jobs:
       
     - name: Terraform Init
       run: terraform init -backend-config=backend.tfvars
+
+    - name: Terraform apply
+      run: terraform apply -auto-approve
