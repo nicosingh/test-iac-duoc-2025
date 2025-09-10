@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      destroy:
+        description: 'Destroy infrastructure'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   terraform-init:
@@ -95,3 +101,7 @@ jobs:
 
     - name: Terraform apply
       run: terraform apply -auto-approve
+
+    - name: Terraform destroy
+      if: ${{ inputs.destroy }}
+      run: terraform destroy -auto-approve
