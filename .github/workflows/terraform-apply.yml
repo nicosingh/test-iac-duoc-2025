@@ -44,20 +44,15 @@ jobs:
     - name: Terraform Plan - Desarrollo
       id: plan
       run: |
-        terraform plan -detailed-exitcode -out=tfplan-desarrollo 2>&1 | tee plan-output.txt
-        echo "plan_output<<EOF" >> $GITHUB_OUTPUT
-        cat plan-output.txt >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        terraform plan -detailed-exitcode -out=tfplan-desarrollo
       continue-on-error: true
 
     - name: Comment PR with Plan Results
       if: github.event_name == 'pull_request'
-      uses: ./.github/actions/terraform-plan-comment
+      uses: borchero/terraform-plan-comment@v2
       with:
-        environment: desarrollo
-        plan_output: ${{ steps.plan.outputs.plan_output }}
-        plan_exitcode: ${{ steps.plan.outputs.exitcode }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        planfile: tfplan-desarrollo
 
     - name: Terraform Apply - Desarrollo
       if: |
