@@ -111,10 +111,6 @@ El proyecto incluye workflows de GitHub Actions para automatizar el deployment:
 3. Implementa tus cambios siguiendo las mejores prácticas de Terraform
 4. Envía un pull request con descripción clara de los cambios
 
-## Licencia
-
-Este proyecto está bajo la licencia especificada en el archivo `LICENSE`.
-
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -145,3 +141,7 @@ No inputs.
 
 No outputs.
 <!-- END_TF_DOCS -->
+
+## Licencia
+
+Este proyecto está bajo la licencia especificada en el archivo `LICENSE`.
