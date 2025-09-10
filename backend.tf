@@ -14,11 +14,11 @@ terraform {
   # storage_account_name = "testiacduoc2025"
   # container_name       = "terraform-state"
   # key                  = "terraform.tfstate"
-  # 
+  #
   # Y leerlas desde el comando 'terraform init':
   #
   # terraform init -backend-config=backend.tfvars
-  # 
+  #
   # (los valores de cada flag/variable son de ejemplo.
   #  Setea tus propios valores para tu entorno especifico)
   backend "azurerm" {}

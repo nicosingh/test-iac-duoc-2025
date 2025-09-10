@@ -19,13 +19,13 @@ jobs:
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'pull_request' && github.base_ref == 'main')
-    
+
     environment:
       name: desarrollo
-    
+
     outputs:
       plan-exitcode: ${{ steps.plan.outputs.exitcode }}
-      
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -71,15 +71,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: terraform-desarrollo
     if: |
-      always() && 
+      always() &&
       needs.terraform-desarrollo.result == 'success' &&
       (
         (github.event_name == 'push' && github.ref == 'refs/heads/main')
       )
-    
+
     outputs:
       plan-exitcode: ${{ steps.plan.outputs.exitcode }}
-      
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -118,17 +118,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: [terraform-desarrollo, terraform-produccion-plan]
     if: |
-      always() && 
+      always() &&
       needs.terraform-desarrollo.result == 'success' &&
       needs.terraform-produccion-plan.result == 'success' &&
       needs.terraform-produccion-plan.outputs.plan-exitcode == '2' &&
       (
         (github.event_name == 'push' && github.ref == 'refs/heads/main')
       )
-    
+
     environment:
       name: produccion
-      
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

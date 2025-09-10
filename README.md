@@ -55,7 +55,7 @@ Para trabajar con diferentes ambientes:
 # Crear workspace de desarrollo
 terraform workspace new dev
 
-# Crear workspace de producción  
+# Crear workspace de producción
 terraform workspace new prod
 
 # Listar workspaces
