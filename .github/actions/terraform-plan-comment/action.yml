@@ -26,7 +26,7 @@ runs:
         script: |
           const environment = '${{ inputs.environment }}';
           const exitCode = '${{ inputs.plan_exitcode }}';
-          const planOutput = `${{ inputs.plan_output }}`;
+          const planOutput = process.env.PLAN_OUTPUT || 'No plan output available';
           
           // Determine plan status
           let status, emoji, summary;
@@ -44,20 +44,22 @@ runs:
             summary = 'Plan failed with errors';
           }
           
-          const comment = `## ${emoji} Terraform Plan Results - ${environment.charAt(0).toUpperCase() + environment.slice(1)}
+          const envName = environment.charAt(0).toUpperCase() + environment.slice(1);
           
+          const comment = `## ${emoji} Terraform Plan Results - ${envName}
+
           **Status:** ${status}  
           **Summary:** ${summary}
-          
+
           <details>
           <summary>📄 View Full Plan Output</summary>
-          
+
           \`\`\`hcl
           ${planOutput}
           \`\`\`
-          
+
           </details>
-          
+
           ---
           *Plan executed in workflow: [\`${context.workflow}\`](${context.payload.repository.html_url}/actions/runs/${context.runId})*`;
           
@@ -68,8 +70,8 @@ runs:
             issue_number: context.issue.number,
           });
           
-          const existingComment = comments.find(comment => 
-            comment.body.includes(`Terraform Plan Results - ${environment.charAt(0).toUpperCase() + environment.slice(1)}`)
+          const existingComment = comments.find(c => 
+            c.body.includes(`Terraform Plan Results - ${envName}`)
           );
           
           if (existingComment) {
@@ -89,3 +91,5 @@ runs:
               body: comment
             });
           }
+        env:
+          PLAN_OUTPUT: ${{ inputs.plan_output }}
