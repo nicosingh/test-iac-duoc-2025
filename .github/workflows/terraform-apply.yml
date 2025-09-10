@@ -23,6 +23,9 @@ jobs:
       plan-exitcode: ${{ steps.plan.outputs.exitcode }}
       
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Setup Tools
       uses: ./.github/actions/setup-tools
 
@@ -67,6 +70,9 @@ jobs:
       plan-exitcode: ${{ steps.plan.outputs.exitcode }}
       
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Setup Tools
       uses: ./.github/actions/setup-tools
 
@@ -113,6 +119,9 @@ jobs:
       name: produccion
       
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Setup Tools
       uses: ./.github/actions/setup-tools
 

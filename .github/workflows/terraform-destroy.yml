@@ -20,6 +20,9 @@ jobs:
       name: ${{ inputs.environment }}
       
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Setup Tools
       uses: ./.github/actions/setup-tools
 
