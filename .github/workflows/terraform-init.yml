@@ -21,7 +21,10 @@ jobs:
         terraform_version: latest
         
     - name: Create backend config file
-      run: echo "${{ vars.BACKEND_TFVARS }}" > backend.tfvars
+      run: |
+        cat << 'EOF' > backend.tfvars
+        ${{ vars.BACKEND_TFVARS }}
+        EOF
       
     - name: Terraform Init
       run: terraform init -backend-config=backend.tfvars
