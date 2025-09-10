@@ -34,12 +34,61 @@ jobs:
         az login --use-device-code
         echo ""
         echo "Azure login successful!"
-        
-    - name: Create backend config file
+    
+    - name: Create temporary backend config file
       run: |
         cat << 'EOF' > backend.tfvars
         ${{ vars.BACKEND_TFVARS }}
         EOF
+
+    - name: Ensure Storage Account and Container exist
+      shell: bash
+      run: |
+        echo "Checking if storage account and container exist..."
+        
+        # Parse backend config
+        RESOURCE_GROUP=$(grep 'resource_group_name' backend.tfvars | cut -d'"' -f2 | tr -d ' ')
+        STORAGE_ACCOUNT=$(grep 'storage_account_name' backend.tfvars | cut -d'"' -f2 | tr -d ' ')
+        CONTAINER_NAME=$(grep 'container_name' backend.tfvars | cut -d'"' -f2 | tr -d ' ')
+        
+        echo "Resource Group: $RESOURCE_GROUP"
+        echo "Storage Account: $STORAGE_ACCOUNT"
+        echo "Container: $CONTAINER_NAME"
+        
+        # Check if storage account exists, create if not
+        if ! az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
+          echo "Storage account $STORAGE_ACCOUNT does not exist, creating..."
+          az storage account create \
+            --name "$STORAGE_ACCOUNT" \
+            --resource-group "$RESOURCE_GROUP" \
+            --location "East US" \
+            --sku "Standard_LRS" \
+            --kind "StorageV2"
+        else
+          echo "Storage account $STORAGE_ACCOUNT already exists"
+        fi
+        
+        # Get storage account key
+        STORAGE_KEY=$(az storage account keys list \
+          --account-name "$STORAGE_ACCOUNT" \
+          --resource-group "$RESOURCE_GROUP" \
+          --query '[0].value' --output tsv)
+        
+        # Check if container exists, create if not
+        if ! az storage container show \
+          --name "$CONTAINER_NAME" \
+          --account-name "$STORAGE_ACCOUNT" \
+          --account-key "$STORAGE_KEY" >/dev/null 2>&1; then
+          echo "Container $CONTAINER_NAME does not exist, creating..."
+          az storage container create \
+            --name "$CONTAINER_NAME" \
+            --account-name "$STORAGE_ACCOUNT" \
+            --account-key "$STORAGE_KEY"
+        else
+          echo "Container $CONTAINER_NAME already exists"
+        fi
+        
+        echo "Storage account and container are ready!"
       
     - name: Terraform Init
       run: terraform init -backend-config=backend.tfvars
