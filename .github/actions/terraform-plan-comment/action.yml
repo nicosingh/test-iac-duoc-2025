@@ -1,0 +1,91 @@
+name: 'Terraform Plan Comment'
+description: 'Post Terraform plan output as a comment on pull requests'
+
+inputs:
+  environment:
+    description: 'Environment name (desarrollo/produccion)'
+    required: true
+  plan_output:
+    description: 'Terraform plan output'
+    required: true
+  plan_exitcode:
+    description: 'Terraform plan exit code'
+    required: true
+  github_token:
+    description: 'GitHub token for commenting'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Comment PR with Plan Results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github_token }}
+        script: |
+          const environment = '${{ inputs.environment }}';
+          const exitCode = '${{ inputs.plan_exitcode }}';
+          const planOutput = `${{ inputs.plan_output }}`;
+          
+          // Determine plan status
+          let status, emoji, summary;
+          if (exitCode == '0') {
+            status = 'No changes';
+            emoji = '✅';
+            summary = 'Infrastructure is up to date';
+          } else if (exitCode == '2') {
+            status = 'Changes detected';
+            emoji = '📋';
+            summary = 'Plan shows infrastructure changes';
+          } else {
+            status = 'Error';
+            emoji = '❌';
+            summary = 'Plan failed with errors';
+          }
+          
+          const comment = `## ${emoji} Terraform Plan Results - ${environment.charAt(0).toUpperCase() + environment.slice(1)}
+          
+          **Status:** ${status}  
+          **Summary:** ${summary}
+          
+          <details>
+          <summary>📄 View Full Plan Output</summary>
+          
+          \`\`\`hcl
+          ${planOutput}
+          \`\`\`
+          
+          </details>
+          
+          ---
+          *Plan executed in workflow: [\`${context.workflow}\`](${context.payload.repository.html_url}/actions/runs/${context.runId})*`;
+          
+          // Find existing comment to update
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const existingComment = comments.find(comment => 
+            comment.body.includes(`Terraform Plan Results - ${environment.charAt(0).toUpperCase() + environment.slice(1)}`)
+          );
+          
+          if (existingComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existingComment.id,
+              body: comment
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+          }
