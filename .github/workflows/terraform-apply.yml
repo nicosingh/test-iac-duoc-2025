@@ -3,8 +3,18 @@ name: Terraform Apply Multi-Environment
 on:
   push:
     branches: [ main ]
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+      - '.github/workflows/terraform-*.yml'
+      - '.github/actions/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - '**.tf'
+      - '**.tfvars'
+      - '.github/workflows/terraform-*.yml'
+      - '.github/actions/**'
   workflow_dispatch:
 
 permissions:
