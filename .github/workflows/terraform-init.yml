@@ -41,7 +41,7 @@ jobs:
         ${{ vars.BACKEND_TFVARS }}
         EOF
 
-    - name: Ensure Storage Account and Container exist
+    - name: Ensure TF Backend storage account and container exist
       shell: bash
       run: |
         echo "Checking if storage account and container exist..."
