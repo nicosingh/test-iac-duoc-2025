@@ -1,22 +1,24 @@
-name: Terraform
+name: Terraform Destroy
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
-      destroy:
-        description: 'Destroy infrastructure'
-        required: false
-        default: false
-        type: boolean
+      environment:
+        description: 'Environment to destroy'
+        required: true
+        type: choice
+        options:
+          - desarrollo
+          - produccion
 
 jobs:
-  terraform:
+  terraform-destroy:
+    name: Terraform Destroy - ${{ inputs.environment }}
     runs-on: ubuntu-latest
     
+    environment:
+      name: ${{ inputs.environment }}
+      
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -95,13 +97,28 @@ jobs:
         fi
         
         echo "Storage account and container are ready!"
-      
+
     - name: Terraform Init
       run: terraform init -backend-config=backend.tfvars
 
-    - name: Terraform apply
-      run: terraform apply -auto-approve
+    - name: Select Terraform Workspace
+      run: |
+        terraform workspace select ${{ inputs.environment }} || {
+          echo "Workspace ${{ inputs.environment }} does not exist. Cannot destroy non-existent environment."
+          exit 1
+        }
 
-    - name: Terraform destroy
-      if: ${{ inputs.destroy }}
+    - name: Show Destroy Plan
+      run: |
+        echo "Showing what will be destroyed in ${{ inputs.environment }} environment:"
+        terraform plan -destroy
+
+    - name: Terraform Destroy
       run: terraform destroy -auto-approve
+
+    - name: Cleanup Workspace (Optional)
+      if: success()
+      run: |
+        echo "Infrastructure destroyed successfully in ${{ inputs.environment }} environment"
+        echo "Note: Terraform workspace '${{ inputs.environment }}' still exists with empty state"
+        echo "You can delete it manually with: terraform workspace delete ${{ inputs.environment }}"
