@@ -1,0 +1,18 @@
+name: 'Setup Tools'
+description: 'Install and setup required tools for Terraform deployment'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Azure CLI
+      shell: bash
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.13.0

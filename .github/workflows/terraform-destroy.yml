@@ -20,86 +20,16 @@ jobs:
       name: ${{ inputs.environment }}
       
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - name: Setup Tools
+      uses: ./.github/actions/setup-tools
 
-    - name: Install Azure CLI
-      shell: bash
-      run: |
-        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+    - name: Azure Login
+      uses: ./.github/actions/azure-login
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+    - name: Setup Terraform Backend and Init
+      uses: ./.github/actions/terraform-backend-init
       with:
-        terraform_version: latest
-
-    - name: Azure Login with Device Code
-      shell: bash
-      run: |
-        echo "Starting Azure login with device code..."
-        echo "You will see a code and URL below. Open the URL in your browser and enter the code to authenticate."
-        echo ""
-        az login --use-device-code
-        echo ""
-        echo "Azure login successful!"
-    
-    - name: Create temporary backend config file
-      run: |
-        cat << 'EOF' > backend.tfvars
-        ${{ vars.BACKEND_TFVARS }}
-        EOF
-
-    - name: Ensure TF Backend storage account and container exist
-      shell: bash
-      run: |
-        echo "Checking if storage account and container exist..."
-        
-        # Parse backend config
-        RESOURCE_GROUP=$(grep 'resource_group_name' backend.tfvars | cut -d'"' -f2 | tr -d ' ')
-        STORAGE_ACCOUNT=$(grep 'storage_account_name' backend.tfvars | cut -d'"' -f2 | tr -d ' ')
-        CONTAINER_NAME=$(grep 'container_name' backend.tfvars | cut -d'"' -f2 | tr -d ' ')
-        
-        echo "Resource Group: $RESOURCE_GROUP"
-        echo "Storage Account: $STORAGE_ACCOUNT"
-        echo "Container: $CONTAINER_NAME"
-        
-        # Check if storage account exists, create if not
-        if ! az storage account show --name "$STORAGE_ACCOUNT" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1; then
-          echo "Storage account $STORAGE_ACCOUNT does not exist, creating..."
-          az storage account create \
-            --name "$STORAGE_ACCOUNT" \
-            --resource-group "$RESOURCE_GROUP" \
-            --location "East US" \
-            --sku "Standard_LRS" \
-            --kind "StorageV2"
-        else
-          echo "Storage account $STORAGE_ACCOUNT already exists"
-        fi
-        
-        # Get storage account key
-        STORAGE_KEY=$(az storage account keys list \
-          --account-name "$STORAGE_ACCOUNT" \
-          --resource-group "$RESOURCE_GROUP" \
-          --query '[0].value' --output tsv)
-        
-        # Check if container exists, create if not
-        if ! az storage container show \
-          --name "$CONTAINER_NAME" \
-          --account-name "$STORAGE_ACCOUNT" \
-          --account-key "$STORAGE_KEY" >/dev/null 2>&1; then
-          echo "Container $CONTAINER_NAME does not exist, creating..."
-          az storage container create \
-            --name "$CONTAINER_NAME" \
-            --account-name "$STORAGE_ACCOUNT" \
-            --account-key "$STORAGE_KEY"
-        else
-          echo "Container $CONTAINER_NAME already exists"
-        fi
-        
-        echo "Storage account and container are ready!"
-
-    - name: Terraform Init
-      run: terraform init -backend-config=backend.tfvars
+        backend_tfvars: ${{ vars.BACKEND_TFVARS }}
 
     - name: Select Terraform Workspace
       run: |
